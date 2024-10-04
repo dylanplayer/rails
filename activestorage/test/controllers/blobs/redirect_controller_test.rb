@@ -42,6 +42,28 @@ class ActiveStorage::Blobs::RedirectControllerTest < ActionDispatch::Integration
     get url
     assert_response :not_found
   end
+
+  test "returns 302 status when ActiveStorage.service_urls_expire_in is present" do
+    original_expiration = ActiveStorage.service_urls_expire_in
+    ActiveStorage.service_urls_expire_in = 5.minutes
+
+    get rails_service_blob_url(@blob.signed_id, filename: @blob.filename)
+
+    assert_response :found
+
+    ActiveStorage.service_urls_expire_in = original_expiration
+  end
+
+  test "returns 308 status when ActiveStorage.service_urls_expire_in is nil" do
+    original_expiration = ActiveStorage.service_urls_expire_in
+    ActiveStorage.service_urls_expire_in = nil
+
+    get rails_service_blob_url(@blob.signed_id, filename: @blob.filename)
+
+    assert_response :permanent_redirect
+
+    ActiveStorage.service_urls_expire_in = original_expiration
+  end
 end
 
 class ActiveStorage::Blobs::ExpiringRedirectControllerTest < ActionDispatch::IntegrationTest

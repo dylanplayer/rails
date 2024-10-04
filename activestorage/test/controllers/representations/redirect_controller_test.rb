@@ -179,3 +179,39 @@ class ActiveStorage::Representations::RedirectControllerWithOpenRedirectTest < A
     end
   end
 end
+
+class ActiveStorage::Representations::RedirectControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @blob = create_file_blob filename: "racecar.jpg"
+  end
+
+  test "returns 302 status when ActiveStorage.service_urls_expire_in is present" do
+    original_expiration = ActiveStorage.service_urls_expire_in
+    ActiveStorage.service_urls_expire_in = 5.minutes
+
+    get rails_blob_representation_url(
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100])
+    )
+
+    assert_response :found
+
+    ActiveStorage.service_urls_expire_in = original_expiration
+  end
+
+  test "returns 308 status when ActiveStorage.service_urls_expire_in is nil" do
+    original_expiration = ActiveStorage.service_urls_expire_in
+    ActiveStorage.service_urls_expire_in = nil
+
+    get rails_blob_representation_url(
+      filename: @blob.filename,
+      signed_blob_id: @blob.signed_id,
+      variation_key: ActiveStorage::Variation.encode(resize_to_limit: [100, 100])
+    )
+
+    assert_response :permanent_redirect
+
+    ActiveStorage.service_urls_expire_in = original_expiration
+  end
+end

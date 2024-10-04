@@ -10,7 +10,8 @@ class ActiveStorage::Blobs::RedirectController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
 
   def show
+    status = ActiveStorage.service_urls_expire_in.present? ? :found : :permanent_redirect
     expires_in ActiveStorage.service_urls_expire_in
-    redirect_to @blob.url(disposition: params[:disposition]), allow_other_host: true
+    redirect_to @blob.url(disposition: params[:disposition]), allow_other_host: true, status:
   end
 end

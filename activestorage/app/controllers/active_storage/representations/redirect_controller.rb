@@ -8,7 +8,8 @@
 # {Authenticated Controllers}[https://guides.rubyonrails.org/active_storage_overview.html#authenticated-controllers].
 class ActiveStorage::Representations::RedirectController < ActiveStorage::Representations::BaseController
   def show
+    status = ActiveStorage.service_urls_expire_in.present? ? :found : :permanent_redirect
     expires_in ActiveStorage.service_urls_expire_in
-    redirect_to @representation.url(disposition: params[:disposition]), allow_other_host: true
+    redirect_to @representation.url(disposition: params[:disposition]), allow_other_host: true, status:
   end
 end
